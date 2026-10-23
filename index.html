@@ -3,354 +3,414 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Exness Cent - Pro Trading Terminal</title>
+    <title>Exness Cent - Mobile Terminal</title>
     <style>
         :root {
             --bg: #0b0e14; --panel: #151924; --input: #2a2e39; --border: #2a2e39;
-            --gold: #f5b041; --blue: #1e90ff; --green: #00e676; --red: #ff5252;
+            --gold: #f5b041; --blue: #1e90ff; --cyan: #00e5ff; --green: #00e676; --red: #ff5252;
             --text-main: #d1d4dc; --text-muted: #787b86;
         }
         * { box-sizing: border-box; font-family: -apple-system, 'Segoe UI', Roboto, Helvetica, sans-serif; }
-        body { background-color: var(--bg); color: var(--text-main); margin: 0; padding: 15px; font-size: 12px; overflow-x: hidden; }
-        h1 { color: #fff; text-align: center; font-size: 18px; margin: 0 0 15px 0; text-transform: uppercase; letter-spacing: 2px; }
+        body { background-color: var(--bg); color: var(--text-main); margin: 0; padding: 10px; font-size: 11.5px; overflow-x: hidden; }
+        h1 { color: #fff; text-align: center; font-size: 15px; margin: 5px 0 15px 0; text-transform: uppercase; letter-spacing: 2px; }
+        
+        /* KHUNG ĐIỆN THOẠI */
+        .mobile-container { max-width: 440px; margin: 0 auto; width: 100%; }
 
-        .chart-container { width: 100%; height: 350px; margin-bottom: 20px; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-        .main-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; max-width: 1400px; margin: 0 auto; }
-        .bot-card { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-        .bot1 { border-top: 3px solid var(--blue); } .bot2 { border-top: 3px solid var(--gold); }
+        /* KHU VỰC TABS */
+        .tabs { display: flex; background: var(--panel); border-radius: 8px; border: 1px solid var(--border); margin-bottom: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        .tab-btn { flex: 1; padding: 10px 2px; text-align: center; background: transparent; color: var(--text-muted); border: none; font-size: 10.5px; font-weight: bold; cursor: pointer; transition: 0.3s; border-bottom: 3px solid transparent; }
+        .tab-btn:hover { background: #1e2433; color: #fff; }
+        .tab-btn.active.b1 { background: rgba(30, 144, 255, 0.1); color: var(--blue); border-bottom-color: var(--blue); }
+        .tab-btn.active.b2 { background: rgba(245, 176, 65, 0.1); color: var(--gold); border-bottom-color: var(--gold); }
+        .tab-btn.active.b3 { background: rgba(0, 229, 255, 0.1); color: var(--cyan); border-bottom-color: var(--cyan); }
 
-        .card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 15px; }
-        .bot-title { font-size: 15px; font-weight: bold; text-transform: uppercase; }
-        .bot1 .bot-title { color: var(--blue); } .bot2 .bot-title { color: var(--gold); }
-        .badge { padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeEffect 0.3s; }
+        @keyframes fadeEffect { from {opacity: 0;} to {opacity: 1;} }
+
+        /* KHUNG CHỨA BOT */
+        .bot-card { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        .bot1 { border-top: 3px solid var(--blue); } .bot2 { border-top: 3px solid var(--gold); } .bot3 { border-top: 3px solid var(--cyan); }
+
+        .card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 12px; }
+        .bot-title { font-size: 13px; font-weight: bold; text-transform: uppercase; }
+        .bot1 .bot-title { color: var(--blue); } .bot2 .bot-title { color: var(--gold); } .bot3 .bot-title { color: var(--cyan); }
+        
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 9px; font-weight: bold; }
         .badge-online { background: rgba(46, 204, 113, 0.15); color: var(--green); border: 1px solid var(--green); }
         .badge-offline { background: rgba(231, 76, 60, 0.15); color: var(--red); border: 1px solid var(--red); }
 
-        .unified-block { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
-        .status-col { display: flex; flex-direction: column; gap: 7px; }
-        .s-row { display: flex; justify-content: space-between; font-size: 11.5px; border-bottom: 1px dashed var(--border); padding-bottom: 4px; }
-        .s-row span:first-child { color: var(--text-muted); }
-        .s-row span:last-child { font-weight: bold; color: #fff; min-width: 0; word-wrap: break-word; white-space: normal; text-align: right; }
-        .text-green { color: var(--green) !important; } .text-red { color: var(--red) !important; } .text-blue { color: var(--blue) !important; } .text-gold { color: var(--gold) !important; }
-
-        .settings-col { display: flex; flex-direction: column; gap: 5px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 6px; border: 1px solid var(--border); }
+        /* BỐ CỤC 2 CỘT SONG SONG: TRÁI (THÔNG SỐ) - PHẢI (TRẠNG THÁI) */
+        .top-panel { display: flex; gap: 8px; margin-bottom: 10px; align-items: stretch; }
+        
+        /* CỘT TRÁI: THÔNG SỐ */
+        .col-left { flex: 1; display: flex; flex-direction: column; gap: 5px; background: rgba(0,0,0,0.25); padding: 8px; border-radius: 6px; border: 1px solid var(--border); }
+        .btn-sync { width: 100%; background: #2a2e39; border: 1px solid #3c404b; padding: 6px; border-radius: 4px; font-weight: bold; font-size: 9.5px; margin-bottom: 4px; cursor: pointer; color: #fff; }
+        .btn-sync:hover { background: #3c404b; }
+        .bot1 .btn-sync { color: var(--blue); } .bot2 .btn-sync { color: var(--gold); } .bot3 .btn-sync { color: var(--cyan); }
+        
         .input-group { display: flex; justify-content: space-between; align-items: center; }
-        .input-group label { font-size: 11px; color: #aaa; }
-        .input-group input { background: var(--input); border: 1px solid #444; color: #fff; padding: 4px 6px; border-radius: 4px; width: 75px; text-align: center; font-weight: bold; font-size: 11px; }
+        .input-group label { font-size: 9.5px; color: #aaa; white-space: nowrap; }
+        .input-group input { background: var(--input); border: 1px solid #444; color: #fff; padding: 3px 2px; border-radius: 4px; width: 45px; text-align: center; font-weight: bold; font-size: 9.5px; }
         .input-group input:focus { outline: none; border-color: var(--blue); }
 
-        .action-group { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px; }
-        button { padding: 8px; border: none; border-radius: 4px; font-weight: bold; font-size: 11px; cursor: pointer; transition: 0.2s; color: #fff; }
-        button:hover { opacity: 0.8; }
-        .btn-sync { grid-column: span 2; background: #2a2e39; color: var(--blue); border: 1px solid #3c404b; margin-bottom: 5px; }
-        .bot1 .btn-apply { background: var(--blue); } .bot2 .btn-apply { background: var(--gold); color: #000; }
+        /* CỘT PHẢI: TRẠNG THÁI */
+        .col-right { flex: 1; display: flex; flex-direction: column; gap: 5px; background: rgba(0,0,0,0.25); padding: 8px; border-radius: 6px; border: 1px solid var(--border); justify-content: flex-start; }
+        .status-header { text-align: center; font-size: 9.5px; font-weight: bold; padding: 6px; background: rgba(255,255,255,0.05); border-radius: 4px; margin-bottom: 4px; border: 1px dashed var(--border); }
+        .s-row { display: flex; justify-content: space-between; font-size: 9.5px; border-bottom: 1px dashed #222; padding-bottom: 3px; align-items: center; }
+        .s-row span:first-child { color: var(--text-muted); white-space: nowrap; margin-right: 5px; }
+        .s-row span:last-child { font-weight: bold; color: #fff; text-align: right; line-height: 1.2; }
+        .text-green { color: var(--green) !important; } .text-red { color: var(--red) !important; } .text-blue { color: var(--blue) !important; } .text-gold { color: var(--gold) !important; } .text-cyan { color: var(--cyan) !important; }
+
+        /* 3. NÚT ĐIỀU KHIỂN (ĐÃ ĐƯỢC TỐI ƯU CÙNG HÀNG) */
+        .action-group { display: flex; gap: 8px; margin-bottom: 12px; }
+        .action-left { flex: 1; display: flex; }
+        .action-right { flex: 1; display: flex; gap: 8px; }
+        .action-group button { width: 100%; padding: 8px 4px; border: none; border-radius: 4px; font-weight: bold; font-size: 10px; cursor: pointer; color: #fff; text-transform: uppercase; }
+        .action-group button:hover { opacity: 0.8; }
+        .bot1 .btn-apply { background: var(--blue); } .bot2 .btn-apply { background: var(--gold); color: #000; } .bot3 .btn-apply { background: var(--cyan); color: #000;}
         .btn-close { background: #d35400; } .btn-pause { background: #c0392b; }
 
-        /* KHU VỰC VẼ BIỂU ĐỒ ẢO MT5 */
-        .mt5-virtual-chart { height: 280px; background-color: #000000; border: 1px solid var(--border); border-radius: 6px; overflow-y: auto; overflow-x: hidden; position: relative; }
+        /* BIỂU ĐỒ VIRTUAL CHART */
+        .mt5-virtual-chart { height: 450px; background-color: #000000; border: 1px solid var(--border); border-radius: 6px; overflow-y: auto; overflow-x: hidden; position: relative; }
         .mt5-scroll-area { display: flex; width: 100%; position: relative; background-image: linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px); background-size: 40px 40px; }
         .mt5-main-area { flex-grow: 1; position: relative; }
-        .mt5-price-axis { width: 55px; background-color: #0a0c10; border-left: 1px solid #222; position: relative; color: #787b86; font-size: 9.5px; font-family: 'Courier New', Courier, monospace; }
+        .mt5-price-axis { width: 50px; background-color: #0a0c10; border-left: 1px solid #222; position: relative; color: #787b86; font-size: 9px; font-family: 'Courier New', Courier, monospace; }
         .axis-label { position: absolute; right: 5px; transform: translateY(-50%); user-select: none; }
         .axis-tick { position: absolute; left: 0; width: 5px; height: 1px; background-color: #333; }
         .mt5-line { position: absolute; left: 0; right: 0; border-top: 1px dashed; z-index: 2; }
         .mt5-line:hover { border-top: 2px dashed; background: rgba(255,255,255,0.05); z-index: 10; }
-        .mt5-lbl-left { position: absolute; left: 8px; font-size: 10px; font-family: 'Courier New', Courier, monospace; font-weight: bold; background: rgba(0,0,0,0.7); padding: 1px 3px; border-radius: 3px; white-space: nowrap; }
-        .mt5-lbl-right { position: absolute; right: 8px; font-size: 10px; font-family: 'Courier New', Courier, monospace; font-weight: bold; background: rgba(0,0,0,0.7); padding: 1px 3px; border-radius: 3px; white-space: nowrap; }
+        .mt5-lbl-left { position: absolute; left: 6px; font-size: 9.5px; font-family: 'Courier New', Courier, monospace; font-weight: bold; background: rgba(0,0,0,0.7); padding: 1px 3px; border-radius: 3px; white-space: nowrap; }
+        .mt5-lbl-right { position: absolute; right: 6px; font-size: 9.5px; font-family: 'Courier New', Courier, monospace; font-weight: bold; background: rgba(0,0,0,0.7); padding: 1px 3px; border-radius: 3px; white-space: nowrap; }
         .current-price-line { position: absolute; left: 0; right: 0; border-top: 1px solid #c8d1e0; z-index: 5; box-shadow: 0 0 5px rgba(200,209,224,0.3); }
-        .current-price-lbl { position: absolute; right: 0; background: #c8d1e0; color: #000; font-size: 10px; font-weight: bold; font-family: 'Courier New', Courier, monospace; padding: 2px 4px; border-radius: 3px 0 0 3px; }
-        .mt5-virtual-chart::-webkit-scrollbar { width: 6px; } .mt5-virtual-chart::-webkit-scrollbar-track { background: #000; } .mt5-virtual-chart::-webkit-scrollbar-thumb { background: #3c404b; border-radius: 3px; }
-        @media (max-width: 1050px) { .unified-block { grid-template-columns: 1fr; } .main-grid { grid-template-columns: 1fr; } }
+        .current-price-lbl { position: absolute; right: 0; background: #c8d1e0; color: #000; font-size: 9px; font-weight: bold; font-family: 'Courier New', Courier, monospace; padding: 2px 4px; border-radius: 3px 0 0 3px; }
+        .mt5-virtual-chart::-webkit-scrollbar { width: 4px; } .mt5-virtual-chart::-webkit-scrollbar-track { background: #000; } .mt5-virtual-chart::-webkit-scrollbar-thumb { background: #3c404b; border-radius: 3px; }
     </style>
 </head>
 <body>
 
-    <h1>TERMINAL ĐIỀU KHIỂN EA TRỰC TUYẾN</h1>
+<div class="mobile-container">
+    <h1>APP CONTROL TERMINAL</h1>
 
-    <div class="chart-container">
-        <div class="tradingview-widget-container" style="height:100%;width:100%">
-          <div id="tradingview_xauusd" style="height:100%;width:100%"></div>
-          <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
-          <script type="text/javascript">
-          new TradingView.widget({ "autosize": true, "symbol": "OANDA:XAUUSD", "interval": "5", "timezone": "Asia/Ho_Chi_Minh", "theme": "dark", "style": "1", "locale": "vi_VN", "enable_publishing": false, "hide_legend": true, "save_image": false, "container_id": "tradingview_xauusd" });
-          </script>
-        </div>
+    <div class="tabs">
+        <button class="tab-btn b1 active" onclick="openTab(event, 'tab-bot1', 'b1')">BOT 1<br>HEDGE</button>
+        <button class="tab-btn b2" onclick="openTab(event, 'tab-bot2', 'b2')">BOT 2<br>DUAL DCA</button>
+        <button class="tab-btn b3" onclick="openTab(event, 'tab-bot3', 'b3')">BOT 3<br>BACKCOM</button>
     </div>
 
-    <div class="main-grid">
-        <!-- ================= BOT 1 ================= -->
+    <!-- ================= BOT 1: GRID HEDGE ================= -->
+    <div id="tab-bot1" class="tab-content active">
         <div class="bot-card bot1">
             <div class="card-header"><span class="bot-title">BOT 1: GRID HEDGE</span><span id="b1_badge" class="badge badge-offline">Đang nạp...</span></div>
-
-            <div class="unified-block">
-                <div class="status-col">
-                    <div class="s-row"><span>Trạng thái:</span><span id="b1_t_status">---</span></div>
-                    <div class="s-row"><span>Bal / Eq:</span><span id="b1_t_baleq">---</span></div>
-                    <div class="s-row"><span>Rổ BUY:</span><span id="b1_t_buy" class="text-blue">---</span></div>
-                    <div class="s-row"><span>Rổ SELL:</span><span id="b1_t_sell" class="text-red">---</span></div>
-                    <div class="s-row"><span>Âm Dương/Đích:</span><span id="b1_t_float">---</span></div>
-                    <div class="s-row"><span>Max DD:</span><span id="b1_t_maxdd" class="text-red">---</span></div>
-                    <div class="s-row"><span>Lãi chốt/Đích:</span><span id="b1_t_closed" class="text-gold">---</span></div>
-                    <div class="s-row"><span>Cập nhật lúc:</span><span id="b1_t_time">---</span></div>
-                </div>
-
-                <div class="settings-col">
-                    <button class="btn-sync" onclick="syncCurrentSettings('Bot1')">📥 Nạp thông số Bot đang chạy</button>
+            
+            <div class="top-panel">
+                <div class="col-left">
+                    <button class="btn-sync" onclick="syncCurrentSettings('Bot1')">📥 Nạp thông số</button>
                     <form autocomplete="off" onsubmit="return false;">
-                        <input type="text" style="display:none" autocomplete="username">
-                        <input type="password" style="display:none" autocomplete="current-password">
-                        <div class="input-group"><label>1. Lot ban đầu:</label><input type="number" id="b1_init" step="0.01" readonly onfocus="this.removeAttribute('readonly');"></div>
-                        <div class="input-group"><label>2. Lot cố định:</label><input type="number" id="b1_fix" step="0.01" readonly onfocus="this.removeAttribute('readonly');"></div>
-                        <div class="input-group"><label>3. Hệ số nhân:</label><input type="number" id="b1_mult" step="0.1" readonly onfocus="this.removeAttribute('readonly');"></div>
+                        <input type="text" style="display:none" autocomplete="username"><input type="password" style="display:none" autocomplete="current-password">
+                        <div class="input-group"><label>1. Lot khởi:</label><input type="number" id="b1_init" step="0.01" readonly onfocus="this.removeAttribute('readonly');"></div>
+                        <div class="input-group"><label>2. Lot CĐ:</label><input type="number" id="b1_fix" step="0.01" readonly onfocus="this.removeAttribute('readonly');"></div>
+                        <div class="input-group"><label>3. HS nhân:</label><input type="number" id="b1_mult" step="0.1" readonly onfocus="this.removeAttribute('readonly');"></div>
                         <div class="input-group"><label>4. Step giá:</label><input type="number" id="b1_step" step="0.1" readonly onfocus="this.removeAttribute('readonly');"></div>
-                        <div class="input-group"><label>5. HS TP (USC):</label><input type="number" id="b1_tp" step="1" readonly onfocus="this.removeAttribute('readonly');"></div>
+                        <div class="input-group"><label>5. HS TP:</label><input type="number" id="b1_tp" step="1" readonly onfocus="this.removeAttribute('readonly');"></div>
                         <div class="input-group"><label>6. SL Tổng:</label><input type="number" id="b1_sl" step="100" readonly onfocus="this.removeAttribute('readonly');"></div>
                         <div class="input-group"><label>7. Chốt nghỉ:</label><input type="number" id="b1_stop" step="50" readonly onfocus="this.removeAttribute('readonly');"></div>
                     </form>
                 </div>
+                <div class="col-right">
+                    <div id="b1_t_status_head" class="status-header text-green">ĐANG HOẠT ĐỘNG</div>
+                    <div class="s-row"><span>Bal/Eq:</span><span id="b1_t_baleq">---</span></div>
+                    <div class="s-row"><span>Rổ BUY:</span><span id="b1_t_buy" class="text-blue">---</span></div>
+                    <div class="s-row"><span>Rổ SELL:</span><span id="b1_t_sell" class="text-red">---</span></div>
+                    <div class="s-row"><span>Âm/Dương:</span><span id="b1_t_float">---</span></div>
+                    <div class="s-row"><span>Max DD:</span><span id="b1_t_maxdd" class="text-red">---</span></div>
+                    <div class="s-row"><span>Lãi chốt:</span><span id="b1_t_closed" class="text-gold">---</span></div>
+                    <div class="s-row"><span>Cập nhật:</span><span id="b1_t_time">---</span></div>
+                </div>
             </div>
 
+            <!-- NÚT ĐIỀU KHIỂN ĐÃ ĐƯỢC TỐI ƯU THÀNH 1 HÀNG -->
             <div class="action-group">
-                <button class="btn-apply" onclick="sendData('Bot1', 'ApplySettings')" style="grid-column: span 2;">LƯU & ÁP DỤNG SETTING</button>
-                <button class="btn-close" onclick="sendData('Bot1', 'CloseAll')">ĐÓNG VÒNG NÀY</button>
-                <button class="btn-pause" onclick="sendData('Bot1', 'TogglePause')">TẠM DỪNG / CHẠY</button>
+                <div class="action-left">
+                    <button class="btn-apply" onclick="sendData('Bot1', 'ApplySettings')">APPLY</button>
+                </div>
+                <div class="action-right">
+                    <button class="btn-close" onclick="sendData('Bot1', 'CloseAll')">ĐÓNG LƯỚI</button>
+                    <button class="btn-pause" onclick="sendData('Bot1', 'TogglePause')">TẠM DỪNG</button>
+                </div>
             </div>
-
+            
             <div class="mt5-virtual-chart" id="b1_mt5_container"></div>
         </div>
+    </div>
 
-        <!-- ================= BOT 2 ================= -->
+    <!-- ================= BOT 2: DUAL DCA ================= -->
+    <div id="tab-bot2" class="tab-content">
         <div class="bot-card bot2">
             <div class="card-header"><span class="bot-title">BOT 2: DUAL DCA</span><span id="b2_badge" class="badge badge-offline">Đang nạp...</span></div>
-
-            <div class="unified-block">
-                <div class="status-col">
-                    <div class="s-row"><span>Trạng thái:</span><span id="b2_t_status">---</span></div>
-                    <div class="s-row"><span>Bal / Eq:</span><span id="b2_t_baleq">---</span></div>
-                    <div class="s-row"><span>Rổ BUY / Đích:</span><span id="b2_t_buy" class="text-blue">---</span></div>
-                    <div class="s-row"><span>Rổ SELL / Đích:</span><span id="b2_t_sell" class="text-red">---</span></div>
-                    <!-- ĐỔI NHÃN TỈA XANH THÀNH CỨU HỘ -->
-                    <div class="s-row"><span>Cứu Hộ / Đích:</span><span id="b2_t_trim" class="text-gold">---</span></div>
-                    <div class="s-row"><span>Âm Dương / Đích:</span><span id="b2_t_float">---</span></div>
-                    <div class="s-row"><span>Max DD:</span><span id="b2_t_maxdd" class="text-red">---</span></div>
-                    <div class="s-row"><span>Lãi chốt / Đích:</span><span id="b2_t_closed" class="text-gold">---</span></div>
-                    <div class="s-row"><span>Cập nhật lúc:</span><span id="b2_t_time">---</span></div>
-                </div>
-
-                <div class="settings-col">
-                    <button class="btn-sync" onclick="syncCurrentSettings('Bot2')">📥 Nạp thông số Bot đang chạy</button>
+            
+            <div class="top-panel">
+                <div class="col-left">
+                    <button class="btn-sync" onclick="syncCurrentSettings('Bot2')">📥 Nạp thông số</button>
                     <form autocomplete="off" onsubmit="return false;">
-                        <input type="text" style="display:none" autocomplete="username">
-                        <input type="password" style="display:none" autocomplete="current-password">
-                        <div class="input-group"><label>1. Lot ban đầu:</label><input type="number" id="b2_init" step="0.01" readonly onfocus="this.removeAttribute('readonly');"></div>
-                        <div class="input-group"><label>2. Hệ số nhân:</label><input type="number" id="b2_mult" step="0.1" readonly onfocus="this.removeAttribute('readonly');"></div>
+                        <div class="input-group"><label>1. Lot khởi:</label><input type="number" id="b2_init" step="0.01" readonly onfocus="this.removeAttribute('readonly');"></div>
+                        <div class="input-group"><label>2. HS nhân:</label><input type="number" id="b2_mult" step="0.1" readonly onfocus="this.removeAttribute('readonly');"></div>
                         <div class="input-group"><label>3. Step giá:</label><input type="number" id="b2_step" step="0.1" readonly onfocus="this.removeAttribute('readonly');"></div>
                         <div class="input-group"><label>4. Tầng Max:</label><input type="number" id="b2_max" step="1" readonly onfocus="this.removeAttribute('readonly');"></div>
-                        <div class="input-group"><label>5. HS TP Riêng:</label><input type="number" id="b2_tp_side" step="1" readonly onfocus="this.removeAttribute('readonly');"></div>
-                        <div class="input-group"><label>6. HS TP Gộp:</label><input type="number" id="b2_tp_tot" step="1" readonly onfocus="this.removeAttribute('readonly');"></div>
-                        <!-- ĐỔI NHÃN TỈA TIỀN THÀNH HS CỨU HỘ -->
-                        <div class="input-group"><label>7. HS Cứu hộ:</label><input type="number" id="b2_tp_trim" step="1" readonly onfocus="this.removeAttribute('readonly');"></div>
+                        <div class="input-group"><label>5. TPr(USC):</label><input type="number" id="b2_tp_side" step="1" readonly onfocus="this.removeAttribute('readonly');"></div>
+                        <div class="input-group"><label>6. TPg(USC):</label><input type="number" id="b2_tp_tot" step="1" readonly onfocus="this.removeAttribute('readonly');"></div>
+                        <div class="input-group"><label>7. Cứu hộ:</label><input type="number" id="b2_tp_trim" step="1" readonly onfocus="this.removeAttribute('readonly');"></div>
                         <div class="input-group"><label>8. SL Tổng:</label><input type="number" id="b2_sl" step="100" readonly onfocus="this.removeAttribute('readonly');"></div>
                         <div class="input-group"><label>9. Chốt nghỉ:</label><input type="number" id="b2_stop" step="50" readonly onfocus="this.removeAttribute('readonly');"></div>
                     </form>
                 </div>
+                <div class="col-right">
+                    <div id="b2_t_status_head" class="status-header text-green">ĐANG HOẠT ĐỘNG</div>
+                    <div class="s-row"><span>Bal/Eq:</span><span id="b2_t_baleq">---</span></div>
+                    <div class="s-row"><span>Rổ BUY:</span><span id="b2_t_buy" class="text-blue">---</span></div>
+                    <div class="s-row"><span>Rổ SELL:</span><span id="b2_t_sell" class="text-red">---</span></div>
+                    <div class="s-row"><span>Cứu Hộ:</span><span id="b2_t_trim" class="text-gold">---</span></div>
+                    <div class="s-row"><span>Âm/Dương:</span><span id="b2_t_float">---</span></div>
+                    <div class="s-row"><span>Max DD:</span><span id="b2_t_maxdd" class="text-red">---</span></div>
+                    <div class="s-row"><span>Lãi chốt:</span><span id="b2_t_closed" class="text-gold">---</span></div>
+                    <div class="s-row"><span>Cập nhật:</span><span id="b2_t_time">---</span></div>
+                </div>
             </div>
 
+            <!-- NÚT ĐIỀU KHIỂN -->
             <div class="action-group">
-                <button class="btn-apply" onclick="sendData('Bot2', 'ApplySettings')" style="grid-column: span 2;">LƯU & ÁP DỤNG SETTING</button>
-                <button class="btn-close" onclick="sendData('Bot2', 'CloseAll')">ĐÓNG SẠCH 2 ĐẦU</button>
-                <button class="btn-pause" onclick="sendData('Bot2', 'TogglePause')">TẠM DỪNG / CHẠY</button>
+                <div class="action-left">
+                    <button class="btn-apply" onclick="sendData('Bot2', 'ApplySettings')">APPLY</button>
+                </div>
+                <div class="action-right">
+                    <button class="btn-close" onclick="sendData('Bot2', 'CloseAll')">ĐÓNG SẠCH</button>
+                    <button class="btn-pause" onclick="sendData('Bot2', 'TogglePause')">TẠM DỪNG</button>
+                </div>
             </div>
-
+            
             <div class="mt5-virtual-chart" id="b2_mt5_container"></div>
         </div>
     </div>
 
+    <!-- ================= BOT 3: BACKCOM ================= -->
+    <div id="tab-bot3" class="tab-content">
+        <div class="bot-card bot3">
+            <div class="card-header"><span class="bot-title">BOT 3: BACKCOM FARM</span><span id="bc_badge" class="badge badge-offline">Đang nạp...</span></div>
+            
+            <div class="top-panel">
+                <div class="col-left">
+                    <button class="btn-sync" onclick="syncCurrentSettings('BotBackcom')">📥 Nạp thông số</button>
+                    <form autocomplete="off" onsubmit="return false;">
+                        <div class="input-group"><label>1. Lot khởi:</label><input type="number" id="bc_init" step="0.01" readonly onfocus="this.removeAttribute('readonly');"></div>
+                        <div class="input-group"><label>2. Lot CĐ:</label><input type="number" id="bc_fix" step="0.01" readonly onfocus="this.removeAttribute('readonly');"></div>
+                        <div class="input-group"><label>3. HS nhân:</label><input type="number" id="bc_mult" step="0.1" readonly onfocus="this.removeAttribute('readonly');"></div>
+                        <div class="input-group"><label>4. Step giá:</label><input type="number" id="bc_step" step="0.1" readonly onfocus="this.removeAttribute('readonly');"></div>
+                        <div class="input-group"><label>5. HS TP:</label><input type="number" id="bc_tp" step="1" readonly onfocus="this.removeAttribute('readonly');"></div>
+                        <div class="input-group"><label>6. Cứu hộ:</label><input type="number" id="bc_tp_trim" step="1" readonly onfocus="this.removeAttribute('readonly');"></div>
+                        <div class="input-group"><label>7. T.Hold(s):</label><input type="number" id="bc_hold" step="10" readonly onfocus="this.removeAttribute('readonly');"></div>
+                        <div class="input-group"><label>8. Lọc Sprd:</label><input type="number" id="bc_sprd" step="10" readonly onfocus="this.removeAttribute('readonly');"></div>
+                        <div class="input-group"><label>9. SL Tổng:</label><input type="number" id="bc_sl" step="100" readonly onfocus="this.removeAttribute('readonly');"></div>
+                        <div class="input-group"><label>10. Chốt nghỉ:</label><input type="number" id="bc_stop" step="50" readonly onfocus="this.removeAttribute('readonly');"></div>
+                    </form>
+                </div>
+                <div class="col-right">
+                    <div id="bc_t_status_head" class="status-header text-cyan">ĐANG CÀY LOT</div>
+                    <div class="s-row"><span>Timer Lọc:</span><span id="bc_t_timer" class="text-gold">---</span></div>
+                    <div class="s-row"><span>Bal/Eq:</span><span id="bc_t_baleq">---</span></div>
+                    <div class="s-row"><span>Rổ BUY:</span><span id="bc_t_buy" class="text-blue">---</span></div>
+                    <div class="s-row"><span>Rổ SELL:</span><span id="bc_t_sell" class="text-red">---</span></div>
+                    <div class="s-row"><span>Cứu Hộ:</span><span id="bc_t_trim" class="text-cyan">---</span></div>
+                    <div class="s-row"><span>Âm/Dương:</span><span id="bc_t_float">---</span></div>
+                    <div class="s-row"><span>Max DD:</span><span id="bc_t_maxdd" class="text-red">---</span></div>
+                    <div class="s-row"><span>Lãi chốt:</span><span id="bc_t_closed" class="text-gold">---</span></div>
+                    <div class="s-row"><span>Cập nhật:</span><span id="bc_t_time">---</span></div>
+                </div>
+            </div>
+
+            <!-- NÚT ĐIỀU KHIỂN -->
+            <div class="action-group">
+                <div class="action-left">
+                    <button class="btn-apply" onclick="sendData('BotBackcom', 'ApplySettings')">APPLY</button>
+                </div>
+                <div class="action-right">
+                    <button class="btn-close" onclick="sendData('BotBackcom', 'CloseAll')">ĐÓNG LƯỚI</button>
+                    <button class="btn-pause" onclick="sendData('BotBackcom', 'TogglePause')">TẠM DỪNG</button>
+                </div>
+            </div>
+            
+            <div class="mt5-virtual-chart" id="bc_mt5_container"></div>
+        </div>
+    </div>
+
+</div>
+
 <script>
+    function openTab(evt, tabId, colorClass) {
+        var i, tabcontent, tablinks;
+        tabcontent = document.getElementsByClassName("tab-content");
+        for (i = 0; i < tabcontent.length; i++) {
+            tabcontent[i].style.display = "none";
+            tabcontent[i].className = tabcontent[i].className.replace(" active", "");
+        }
+        tablinks = document.getElementsByClassName("tab-btn");
+        for (i = 0; i < tablinks.length; i++) {
+            tablinks[i].className = tablinks[i].className.replace(" active", "").replace(" b1", "").replace(" b2", "").replace(" b3", "");
+            if(i===0) tablinks[i].className += " b1";
+            if(i===1) tablinks[i].className += " b2";
+            if(i===2) tablinks[i].className += " b3";
+        }
+        document.getElementById(tabId).style.display = "block";
+        document.getElementById(tabId).className += " active";
+        evt.currentTarget.className += " active";
+    }
+
     const FIREBASE_URL = "https://exbc-fc41f-default-rtdb.firebaseio.com/";
-    let g_bot1_cache = null; let g_bot2_cache = null;
+    let g_bot1_cache = null; let g_bot2_cache = null; let g_bc_cache = null;
 
     async function fetchBotTelemetry() {
-        try { let res1 = await fetch(FIREBASE_URL + "Bot1_Status.json"); let data1 = await res1.json(); if(data1) updateBot1UI(data1); else markOffline('b1'); } catch(e) { markOffline('b1'); }
-        try { let res2 = await fetch(FIREBASE_URL + "Bot2_Status.json"); let data2 = await res2.json(); if(data2) updateBot2UI(data2); else markOffline('b2'); } catch(e) { markOffline('b2'); }
+        try { let r1 = await fetch(FIREBASE_URL + "Bot1_Status.json"); let d1 = await r1.json(); if(d1) updateBot1UI(d1); else markOffline('b1'); } catch(e) { markOffline('b1'); }
+        try { let r2 = await fetch(FIREBASE_URL + "Bot2_Status.json"); let d2 = await r2.json(); if(d2) updateBot2UI(d2); else markOffline('b2'); } catch(e) { markOffline('b2'); }
+        try { let r3 = await fetch(FIREBASE_URL + "BotBackcom_Status.json"); let d3 = await r3.json(); if(d3) updateBotBCUI(d3); else markOffline('bc'); } catch(e) { markOffline('bc'); }
     }
 
     function markOffline(bot) {
         document.getElementById(bot + '_badge').className = "badge badge-offline";
         document.getElementById(bot + '_badge').innerText = "MẤT KẾT NỐI";
+        if(bot==='b1') { document.getElementById('b1_t_status_head').innerText = "MẤT KẾT NỐI"; document.getElementById('b1_t_status_head').className = "status-header text-red"; }
+        if(bot==='b2') { document.getElementById('b2_t_status_head').innerText = "MẤT KẾT NỐI"; document.getElementById('b2_t_status_head').className = "status-header text-red"; }
+        if(bot==='bc') { document.getElementById('bc_t_status_head').innerText = "MẤT KẾT NỐI"; document.getElementById('bc_t_status_head').className = "status-header text-red"; }
     }
 
-    function translateStatus(raw) {
-        if(raw === "ONLINE" || raw === "ĐANG CHẠY") return "ĐANG HOẠT ĐỘNG"; 
-        if(raw === "PAUSED" || raw === "TẠM DỪNG") return "ĐÃ TẠM DỪNG"; 
-        return raw;
-    }
-
-    // ========================================================
-    // TÍCH HỢP ĐƯỜNG GIÁ HIỆN TẠI (CURRENT PRICE)
-    // ========================================================
     function renderMT5GridWithAxis(containerId, botData) {
         let container = document.getElementById(containerId);
+        if(container.offsetParent === null) return; 
+
         let ordersArray = botData.orders;
         let currency = botData.currency;
         let currentPrice = botData.currentPrice || null; 
         
         if(!ordersArray || ordersArray.length === 0) {
-            container.innerHTML = `
-                <div class="mt5-chart-wrapper" style="height: 100%;">
-                    <div class="mt5-main-area" style="display:flex; justify-content:center; align-items:center; color:#787b86;">
-                        Chưa có lệnh nào đang mở
-                    </div>
-                </div>`;
+            container.innerHTML = `<div class="mt5-chart-wrapper" style="height: 100%;"><div class="mt5-main-area" style="display:flex; justify-content:center; align-items:center; color:#787b86;">Chưa có lệnh mở</div></div>`;
             return;
         }
-
         ordersArray.sort((a, b) => a.price - b.price);
         let rawMax = ordersArray[ordersArray.length - 1].price;
         let rawMin = ordersArray[0].price;
 
-        if(currentPrice) {
-            rawMax = Math.max(rawMax, currentPrice);
-            rawMin = Math.min(rawMin, currentPrice);
-        }
-
+        if(currentPrice) { rawMax = Math.max(rawMax, currentPrice); rawMin = Math.min(rawMin, currentPrice); }
         let range = rawMax - rawMin;
         if (range === 0) range = 2.0; 
-        
         let padding = Math.max(range * 0.1, 2.0);
-        let chartMax = rawMax + padding;
-        let chartMin = rawMin - padding;
-        let chartRange = chartMax - chartMin;
+        let chartMax = rawMax + padding; let chartMin = rawMin - padding; let chartRange = chartMax - chartMin;
 
-        // TỶ LỆ: 1 Giá = 10 Pixels
         let pixelsPerPrice = 10; 
         let calculatedHeight = chartRange * pixelsPerPrice;
-        let finalHeight = Math.max(280, calculatedHeight); 
-
-        if(finalHeight === 280 && calculatedHeight < 280) {
-            chartRange = 280 / pixelsPerPrice; 
-            let midPrice = (rawMax + rawMin) / 2;
-            chartMax = midPrice + (chartRange / 2);
-            chartMin = midPrice - (chartRange / 2);
+        let finalHeight = Math.max(450, calculatedHeight); 
+        if(finalHeight === 450 && calculatedHeight < 450) {
+            chartRange = 450 / pixelsPerPrice; 
+            let midPrice = (rawMax + rawMin) / 2; chartMax = midPrice + (chartRange / 2); chartMin = midPrice - (chartRange / 2);
         }
 
-        let axisHtml = '';
-        let stepCount = Math.floor(finalHeight / 40); 
+        let axisHtml = ''; let stepCount = Math.floor(finalHeight / 40); 
         for(let i=0; i<=stepCount; i++) {
-            let topPercent = (i / stepCount) * 100;
-            let priceVal = chartMax - (chartRange * (i / stepCount));
-            axisHtml += `
-                <div class="axis-tick" style="top: ${topPercent}%;"></div>
-                <div class="axis-label" style="top: ${topPercent}%;">${priceVal.toFixed(2)}</div>
-            `;
+            let topPercent = (i / stepCount) * 100; let priceVal = chartMax - (chartRange * (i / stepCount));
+            axisHtml += `<div class="axis-tick" style="top: ${topPercent}%;"></div><div class="axis-label" style="top: ${topPercent}%;">${priceVal.toFixed(2)}</div>`;
         }
 
-        let linesHtml = '';
-        let priceGroups = {};
-        ordersArray.forEach(o => {
-            if(!priceGroups[o.price]) priceGroups[o.price] = [];
-            priceGroups[o.price].push(o);
-        });
-
+        let linesHtml = ''; let priceGroups = {};
+        ordersArray.forEach(o => { if(!priceGroups[o.price]) priceGroups[o.price] = []; priceGroups[o.price].push(o); });
         for (let p in priceGroups) {
-            let group = priceGroups[p];
-            let priceNum = parseFloat(p);
-            let topP = ((chartMax - priceNum) / chartRange) * 100;
-            
+            let group = priceGroups[p]; let priceNum = parseFloat(p); let topP = ((chartMax - priceNum) / chartRange) * 100;
             group.forEach((o, index) => {
-                let isBuy = o.type === "BUY";
-                let color = isBuy ? "var(--blue)" : "var(--red)";
-                let pColor = o.profit >= 0 ? "var(--green)" : "var(--red)";
-                let profitStr = (o.profit >= 0 ? "+" : "") + o.profit.toFixed(2);
-                let labelOffset = index * 14; 
-                
-                linesHtml += `
-                <div class="mt5-line" style="top: ${topP}%; border-color: ${color};">
-                    <span class="mt5-lbl-left" style="color: ${color}; top: ${-15 + labelOffset}px;">
-                        ${o.type} ${o.lot.toFixed(2)} @ ${o.price.toFixed(2)}
-                    </span>
-                    <span class="mt5-lbl-right" style="color: ${pColor}; top: ${-15 + labelOffset}px;">
-                        ${profitStr} ${currency}
-                    </span>
-                </div>`;
+                let isBuy = o.type === "BUY"; let color = isBuy ? "var(--blue)" : "var(--red)"; let pColor = o.profit >= 0 ? "var(--green)" : "var(--red)";
+                let profitStr = (o.profit >= 0 ? "+" : "") + o.profit.toFixed(2); let labelOffset = index * 14; 
+                linesHtml += `<div class="mt5-line" style="top: ${topP}%; border-color: ${color};"><span class="mt5-lbl-left" style="color: ${color}; top: ${-15 + labelOffset}px;">${o.type} ${o.lot.toFixed(2)}</span><span class="mt5-lbl-right" style="color: ${pColor}; top: ${-15 + labelOffset}px;">${profitStr}</span></div>`;
             });
         }
-
         if(currentPrice) {
             let topP = ((chartMax - currentPrice) / chartRange) * 100;
-            linesHtml += `
-                <div class="current-price-line" style="top: ${topP}%;">
-                    <span class="current-price-lbl" style="top: -8px;">${currentPrice.toFixed(2)} ◀</span>
-                </div>
-            `;
+            linesHtml += `<div class="current-price-line" style="top: ${topP}%;"><span class="current-price-lbl" style="top: -8px;">${currentPrice.toFixed(2)} ◀</span></div>`;
         }
 
-        container.innerHTML = `
-            <div class="mt5-scroll-area" style="height: ${finalHeight}px;">
-                <div class="mt5-main-area">${linesHtml}</div>
-                <div class="mt5-price-axis">${axisHtml}</div>
-            </div>
-        `;
-        
+        container.innerHTML = `<div class="mt5-scroll-area" style="height: ${finalHeight}px;"><div class="mt5-main-area">${linesHtml}</div><div class="mt5-price-axis">${axisHtml}</div></div>`;
         if(currentPrice) {
             let topP = ((chartMax - currentPrice) / chartRange) * finalHeight;
-            setTimeout(() => { container.scrollTop = topP - 140; }, 100);
-        } else {
-            setTimeout(() => { container.scrollTop = (finalHeight - 280) / 2; }, 100);
-        }
+            setTimeout(() => { container.scrollTop = topP - 225; }, 100);
+        } else { setTimeout(() => { container.scrollTop = (finalHeight - 450) / 2; }, 100); }
     }
-    // ========================================================
 
     function updateBot1UI(d) {
-        g_bot1_cache = d;
-        let isOnline = (Math.floor(Date.now() / 1000) - d.time) <= 6; 
+        g_bot1_cache = d; let isOnline = (Math.floor(Date.now() / 1000) - d.time) <= 6; 
         document.getElementById('b1_badge').className = isOnline ? "badge badge-online" : "badge badge-offline";
         document.getElementById('b1_badge').innerText = isOnline ? "ĐANG CHẠY" : "MẤT KẾT NỐI";
+        
+        let statusStr = d.stopped ? "ĐÃ TẠM DỪNG" : "ĐANG HOẠT ĐỘNG";
+        document.getElementById('b1_t_status_head').innerText = statusStr;
+        document.getElementById('b1_t_status_head').className = d.stopped ? "status-header text-red" : "status-header text-green";
 
-        document.getElementById('b1_t_status').innerText = translateStatus(d.status);
-        document.getElementById('b1_t_status').className = d.stopped ? "text-red" : "text-green";
-        document.getElementById('b1_t_baleq').innerText = `${d.balance.toFixed(2)} | ${d.equity.toFixed(2)} ${d.currency}`;
+        document.getElementById('b1_t_baleq').innerText = `${d.balance.toFixed(2)} | ${d.equity.toFixed(2)}`;
         document.getElementById('b1_t_buy').innerText = `${d.buyCount} lệnh (${d.buyVol.toFixed(2)}) | ${d.buyProfit >= 0 ? '+' : ''}${d.buyProfit.toFixed(2)}`;
         document.getElementById('b1_t_sell').innerText = `${d.sellCount} lệnh (${d.sellVol.toFixed(2)}) | ${d.sellProfit >= 0 ? '+' : ''}${d.sellProfit.toFixed(2)}`;
         document.getElementById('b1_t_float').innerText = `${d.floating >= 0 ? '+' : ''}${d.floating.toFixed(2)} / +${d.targetTP.toFixed(2)}`;
         document.getElementById('b1_t_float').className = d.floating >= 0 ? "text-green" : "text-red";
-        document.getElementById('b1_t_maxdd').innerText = `${d.maxDD.toFixed(2)} ${d.currency}`;
+        document.getElementById('b1_t_maxdd').innerText = `${d.maxDD.toFixed(2)}`;
         document.getElementById('b1_t_closed').innerText = `${d.closedProfit.toFixed(2)} / ${d.stopTarget.toFixed(2)}`;
         document.getElementById('b1_t_time').innerText = new Date(d.time * 1000).toLocaleTimeString();
-
         renderMT5GridWithAxis('b1_mt5_container', d);
     }
 
     function updateBot2UI(d) {
-        g_bot2_cache = d;
-        let isOnline = (Math.floor(Date.now() / 1000) - d.time) <= 6;
+        g_bot2_cache = d; let isOnline = (Math.floor(Date.now() / 1000) - d.time) <= 6;
         document.getElementById('b2_badge').className = isOnline ? "badge badge-online" : "badge badge-offline";
         document.getElementById('b2_badge').innerText = isOnline ? "ĐANG CHẠY" : "MẤT KẾT NỐI";
-
-        document.getElementById('b2_t_status').innerText = translateStatus(d.status);
-        document.getElementById('b2_t_status').className = d.stopped ? "text-red" : "text-green";
-        document.getElementById('b2_t_baleq').innerText = `${d.balance.toFixed(2)} | ${d.equity.toFixed(2)} ${d.currency}`;
         
+        let statusStr = d.stopped ? "ĐÃ TẠM DỪNG" : "ĐANG HOẠT ĐỘNG";
+        document.getElementById('b2_t_status_head').innerText = statusStr;
+        document.getElementById('b2_t_status_head').className = d.stopped ? "status-header text-red" : "status-header text-green";
+
+        document.getElementById('b2_t_baleq').innerText = `${d.balance.toFixed(2)} | ${d.equity.toFixed(2)}`;
         let tb = (d.buyVol / 0.01) * d.cfg_sideTP; let ts = (d.sellVol / 0.01) * d.cfg_sideTP;
-        let bs = (d.cfg_sideTP > 0 && d.buyCount > 0) ? ` / +${tb.toFixed(2)}` : "";
-        let ss = (d.cfg_sideTP > 0 && d.sellCount > 0) ? ` / +${ts.toFixed(2)}` : "";
-
-        document.getElementById('b2_t_buy').innerText = `${d.buyCount}/${d.maxLayers} (${d.buyVol.toFixed(2)}) | ${d.buyProfit >= 0 ? '+' : ''}${d.buyProfit.toFixed(2)}${bs}`;
-        document.getElementById('b2_t_sell').innerText = `${d.sellCount}/${d.maxLayers} (${d.sellVol.toFixed(2)}) | ${d.sellProfit >= 0 ? '+' : ''}${d.sellProfit.toFixed(2)}${ss}`;
-        
-        // HIỂN THỊ ÂM DƯƠNG CHO TÍNH NĂNG CỨU HỘ MỚI
-        let trimColor = d.trimProfit >= 0 ? "var(--green)" : "var(--gold)";
-        let trimSign = d.trimProfit > 0 ? "+" : "";
-        document.getElementById('b2_t_trim').innerText = `${trimSign}${d.trimProfit.toFixed(2)} / +${d.targetTrimTP.toFixed(2)}`;
-        document.getElementById('b2_t_trim').style.color = trimColor;
-
+        document.getElementById('b2_t_buy').innerText = `${d.buyCount}/${d.maxLayers} (${d.buyVol.toFixed(2)}) | ${d.buyProfit >= 0 ? '+' : ''}${d.buyProfit.toFixed(2)} / +${tb.toFixed(2)}`;
+        document.getElementById('b2_t_sell').innerText = `${d.sellCount}/${d.maxLayers} (${d.sellVol.toFixed(2)}) | ${d.sellProfit >= 0 ? '+' : ''}${d.sellProfit.toFixed(2)} / +${ts.toFixed(2)}`;
+        document.getElementById('b2_t_trim').innerText = `${d.trimProfit >= 0 ? '+' : ''}${d.trimProfit.toFixed(2)} / +${d.targetTrimTP.toFixed(2)}`;
+        document.getElementById('b2_t_trim').style.color = d.trimProfit >= 0 ? "var(--green)" : "var(--gold)";
         document.getElementById('b2_t_float').innerText = `${d.floating >= 0 ? '+' : ''}${d.floating.toFixed(2)} / +${d.targetTotalTP.toFixed(2)}`;
         document.getElementById('b2_t_float').className = d.floating >= 0 ? "text-green" : "text-red";
-        document.getElementById('b2_t_maxdd').innerText = `${d.maxDD.toFixed(2)} ${d.currency}`;
+        document.getElementById('b2_t_maxdd').innerText = `${d.maxDD.toFixed(2)}`;
         document.getElementById('b2_t_closed').innerText = `${d.closedProfit.toFixed(2)} / ${d.stopTarget.toFixed(2)}`;
         document.getElementById('b2_t_time').innerText = new Date(d.time * 1000).toLocaleTimeString();
-
         renderMT5GridWithAxis('b2_mt5_container', d);
+    }
+
+    function updateBotBCUI(d) {
+        g_bc_cache = d; let isOnline = (Math.floor(Date.now() / 1000) - d.time) <= 6;
+        document.getElementById('bc_badge').className = isOnline ? "badge badge-online" : "badge badge-offline";
+        document.getElementById('bc_badge').innerText = isOnline ? "ĐANG CHẠY" : "MẤT KẾT NỐI";
+        
+        let statusStr = d.stopped ? "ĐÃ TẠM DỪNG" : "ĐANG CÀY LOT";
+        document.getElementById('bc_t_status_head').innerText = statusStr;
+        document.getElementById('bc_t_status_head').className = d.stopped ? "status-header text-red" : "status-header text-cyan";
+
+        document.getElementById('bc_t_baleq').innerText = `${d.balance.toFixed(2)} | ${d.equity.toFixed(2)}`;
+        document.getElementById('bc_t_buy').innerText = `${d.buyCount} lệnh (${d.buyVol.toFixed(2)}) | ${d.buyProfit >= 0 ? '+' : ''}${d.buyProfit.toFixed(2)}`;
+        document.getElementById('bc_t_sell').innerText = `${d.sellCount} lệnh (${d.sellVol.toFixed(2)}) | ${d.sellProfit >= 0 ? '+' : ''}${d.sellProfit.toFixed(2)}`;
+        document.getElementById('bc_t_trim').innerText = `${d.trimProfit >= 0 ? '+' : ''}${d.trimProfit.toFixed(2)} / +${d.targetTrimTP.toFixed(2)}`;
+        document.getElementById('bc_t_trim').style.color = d.trimProfit >= 0 ? "var(--green)" : "var(--gold)";
+        document.getElementById('bc_t_float').innerText = `${d.floating >= 0 ? '+' : ''}${d.floating.toFixed(2)} / +${d.targetTP.toFixed(2)}`;
+        document.getElementById('bc_t_float').className = d.floating >= 0 ? "text-green" : "text-red";
+        document.getElementById('bc_t_maxdd').innerText = `${d.maxDD.toFixed(2)}`;
+        document.getElementById('bc_t_closed').innerText = `${d.closedProfit.toFixed(2)} / ${d.stopTarget.toFixed(2)}`;
+        document.getElementById('bc_t_time').innerText = new Date(d.time * 1000).toLocaleTimeString();
+        
+        let timerStr = "Khởi tạo...";
+        if(d.holdTime !== undefined && d.cfg_hold !== undefined) {
+            if(d.holdTime >= d.cfg_hold) timerStr = `MỞ KHÓA (${d.holdTime}s)`;
+            else timerStr = `Đang đếm... ${d.holdTime}s / ${d.cfg_hold}s`;
+        }
+        document.getElementById('bc_t_timer').innerText = timerStr;
+        document.getElementById('bc_t_timer').style.color = (d.holdTime >= d.cfg_hold) ? "var(--green)" : "var(--gold)";
+        renderMT5GridWithAxis('bc_mt5_container', d);
     }
 
     function syncCurrentSettings(bot) {
@@ -363,31 +423,40 @@
             document.getElementById('b2_step').value = g_bot2_cache.cfg_step; document.getElementById('b2_max').value = g_bot2_cache.cfg_maxLayers;
             document.getElementById('b2_tp_side').value = g_bot2_cache.cfg_sideTP; document.getElementById('b2_tp_tot').value = g_bot2_cache.cfg_totalTP;
             document.getElementById('b2_tp_trim').value = g_bot2_cache.cfg_trimTP; document.getElementById('b2_sl').value = g_bot2_cache.cfg_sl; document.getElementById('b2_stop').value = g_bot2_cache.cfg_stop;
+        } else if(bot === 'BotBackcom' && g_bc_cache) {
+            document.getElementById('bc_init').value = g_bc_cache.cfg_initLot; document.getElementById('bc_fix').value = g_bc_cache.cfg_fixLot;
+            document.getElementById('bc_mult').value = g_bc_cache.cfg_mult; document.getElementById('bc_step').value = g_bc_cache.cfg_step;
+            document.getElementById('bc_tp').value = g_bc_cache.cfg_tpCoeff; document.getElementById('bc_tp_trim').value = g_bc_cache.cfg_trimTP;
+            document.getElementById('bc_hold').value = g_bc_cache.cfg_hold || 180; document.getElementById('bc_sprd').value = g_bc_cache.cfg_sprd || 1000;
+            document.getElementById('bc_sl').value = g_bc_cache.cfg_sl; document.getElementById('bc_stop').value = g_bc_cache.cfg_stop;
         } else { alert("Chưa có dữ liệu!"); }
     }
 
     async function sendData(botName, action) {
-        let badgeId = botName === 'Bot1' ? 'b1_badge' : 'b2_badge';
+        let badgeId = botName === 'Bot1' ? 'b1_badge' : (botName === 'Bot2' ? 'b2_badge' : 'bc_badge');
         if(document.getElementById(badgeId).innerText.includes("MẤT")) {
-            if(!confirm("CẢNH BÁO: Bot đang MẤT KẾT NỐI. Gửi lệnh vẫn có thể bị treo. Tiếp tục?")) return;
+            if(!confirm("CẢNH BÁO: Bot đang MẤT KẾT NỐI. Tiếp tục?")) return;
         }
-
         let payload = { command: action };
-        if(botName === 'Bot1' && action === 'ApplySettings') {
-            payload.initLot = document.getElementById('b1_init').value; payload.fixLot = document.getElementById('b1_fix').value;
-            payload.mult = document.getElementById('b1_mult').value; payload.step = document.getElementById('b1_step').value;
-            payload.tpCoeff = document.getElementById('b1_tp').value; payload.sl = document.getElementById('b1_sl').value; payload.stopTarget = document.getElementById('b1_stop').value;
-        } else if(botName === 'Bot2' && action === 'ApplySettings') {
-            payload.initLot = document.getElementById('b2_init').value; payload.mult = document.getElementById('b2_mult').value;
-            payload.step = document.getElementById('b2_step').value; payload.maxLayer = document.getElementById('b2_max').value;
-            payload.sideTP = document.getElementById('b2_tp_side').value; payload.totalTP = document.getElementById('b2_tp_tot').value;
-            payload.trimTP = document.getElementById('b2_tp_trim').value; payload.sl = document.getElementById('b2_sl').value; payload.stopTarget = document.getElementById('b2_stop').value;
+        if(action === 'ApplySettings') {
+            if(botName === 'Bot1') {
+                payload.initLot = document.getElementById('b1_init').value; payload.fixLot = document.getElementById('b1_fix').value;
+                payload.mult = document.getElementById('b1_mult').value; payload.step = document.getElementById('b1_step').value;
+                payload.tpCoeff = document.getElementById('b1_tp').value; payload.sl = document.getElementById('b1_sl').value; payload.stopTarget = document.getElementById('b1_stop').value;
+            } else if(botName === 'Bot2') {
+                payload.initLot = document.getElementById('b2_init').value; payload.mult = document.getElementById('b2_mult').value;
+                payload.step = document.getElementById('b2_step').value; payload.maxLayer = document.getElementById('b2_max').value;
+                payload.sideTP = document.getElementById('b2_tp_side').value; payload.totalTP = document.getElementById('b2_tp_tot').value;
+                payload.trimTP = document.getElementById('b2_tp_trim').value; payload.sl = document.getElementById('b2_sl').value; payload.stopTarget = document.getElementById('b2_stop').value;
+            } else if(botName === 'BotBackcom') {
+                payload.initLot = document.getElementById('bc_init').value; payload.fixLot = document.getElementById('bc_fix').value;
+                payload.mult = document.getElementById('bc_mult').value; payload.step = document.getElementById('bc_step').value;
+                payload.tpCoeff = document.getElementById('bc_tp').value; payload.trimTP = document.getElementById('bc_tp_trim').value;
+                payload.hold = document.getElementById('bc_hold').value; payload.sprd = document.getElementById('bc_sprd').value;
+                payload.sl = document.getElementById('bc_sl').value; payload.stopTarget = document.getElementById('bc_stop').value;
+            }
         }
-
-        try {
-            await fetch(FIREBASE_URL + botName + "_Control.json", { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-            alert("Lệnh đã được chuyển lên Đám mây!");
-        } catch(e) { alert("Lỗi mạng!"); }
+        try { await fetch(FIREBASE_URL + botName + "_Control.json", { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }); alert("Lệnh đã gửi!"); } catch(e) { alert("Lỗi mạng!"); }
     }
 
     setInterval(fetchBotTelemetry, 2000); fetchBotTelemetry();
